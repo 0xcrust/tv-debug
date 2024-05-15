@@ -1,0 +1,17 @@
+[package]
+name = "tv-debug"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.83"
+chrono = "0.4.38"
+dotenv = "0.15.0"
+env_logger = "0.11.3"
+log = "0.4.21"
+rand = "0.8.5"
+reqwest = { version = "0.12.4", features = ["json"] }
+serde = { version = "1.0.202", features = ["derive"] }
+tokio = { version = "1.37.0", features = ["macros", "rt-multi-thread"] }
