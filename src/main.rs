@@ -6,8 +6,6 @@ use chrono::{DateTime, Datelike, Days, NaiveDate, TimeDelta, Timelike, Utc};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
-const BASE_URL: &str = "https://trade-view.goosefx.io/tradingview/";
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv::dotenv()?;
@@ -58,11 +56,12 @@ async fn test_time_period_for_api(
     Ok(())
 }
 
-//${URL_SERVER}history?symbol=${symbolInfo.name}&resolution=${apiResolution}&from=${from}&to=${to}
+/// ${BASE_URL}history?symbol=${symbolInfo.name}&resolution=${apiResolution}&from=${from}&to=${to}
 fn make_url(api_resolution: u32, from_ts: i64, to_ts: i64) -> String {
+    let base = std::env::var("BASE_URL").expect("BASE_URL env variable is missing");
     format!(
         "{}history?symbol=SOL/USDC&resolution={}&from={}&to={}",
-        BASE_URL, api_resolution, from_ts, to_ts
+        base, api_resolution, from_ts, to_ts
     )
 }
 
@@ -184,11 +183,12 @@ impl From<ApiResult> for StructuredApiResult {
 }
 
 /*
-12 May 21:00 13 May 02:00(No candles inbetween)
-13 May 05:00 13 May 08:00(No candles inbetween)
-13 May 10:00 13 May 12:00(No candles inbetween)
+Known periods for which there is missing data(From viewing chart)
+- 12 May 21:00 13 May 02:00(No candles inbetween)
+- 13 May 05:00 13 May 08:00(No candles inbetween)
+- 13 May 10:00 13 May 12:00(No candles inbetween)
 */
-async fn static_tests() -> anyhow::Result<()> {
+async fn static_inspect() -> anyhow::Result<()> {
     let may_12_2100 = NaiveDate::from_ymd_opt(2024, 05, 12)
         .unwrap()
         .and_hms_opt(21, 0, 0)
@@ -197,8 +197,6 @@ async fn static_tests() -> anyhow::Result<()> {
         .unwrap();
     let may_12_2100_ts = may_12_2100.timestamp();
     assert_eq!(may_12_2100_ts, 1715547600);
-    // println!("may_12_2100 timestamp: {}", may_12_2100.timestamp());
-    // 1715547600
 
     let may_13_0200 = NaiveDate::from_ymd_opt(2024, 05, 13)
         .unwrap()
@@ -208,8 +206,6 @@ async fn static_tests() -> anyhow::Result<()> {
         .unwrap();
     let may_13_0200_ts = may_13_0200.timestamp();
     assert_eq!(may_13_0200_ts, 1715565600);
-    // println!("may_13_0200 timestamp: {}", may_13_0200.timestamp());
-    // 1715565600
 
     let may_13_0500 = NaiveDate::from_ymd_opt(2024, 05, 13)
         .unwrap()
@@ -219,8 +215,6 @@ async fn static_tests() -> anyhow::Result<()> {
         .unwrap();
     let may_12_0500_ts = may_13_0500.timestamp();
     assert_eq!(may_12_0500_ts, 1715576400);
-    // println!("may_13_0500 timestamp: {}", may_13_0500.timestamp());
-    // 1715576400
 
     let may_13_0800 = NaiveDate::from_ymd_opt(2024, 05, 13)
         .unwrap()
@@ -230,8 +224,6 @@ async fn static_tests() -> anyhow::Result<()> {
         .unwrap();
     let may_13_0800_ts = may_13_0800.timestamp();
     assert_eq!(may_13_0800_ts, 1715587200);
-    // println!("may_13_0800 timestamp: {}", may_13_0800.timestamp());
-    // 1715587200
 
     let may_13_1000 = NaiveDate::from_ymd_opt(2024, 05, 13)
         .unwrap()
@@ -241,8 +233,6 @@ async fn static_tests() -> anyhow::Result<()> {
         .unwrap();
     let may_13_1000_ts = may_13_1000.timestamp();
     assert_eq!(may_13_1000_ts, 1715594400);
-    // println!("may_13_1000 timestamp: {}", may_13_1000.timestamp());
-    // 1715594400
 
     let may_13_1200 = NaiveDate::from_ymd_opt(2024, 05, 13)
         .unwrap()
@@ -252,8 +242,6 @@ async fn static_tests() -> anyhow::Result<()> {
         .unwrap();
     let may_13_1200_ts = may_13_1200.timestamp();
     assert_eq!(may_13_1200_ts, 1715601600);
-    // println!("may_13_1200 timestamp: {}", may_13_1200.timestamp());
-    // 1715601600
 
     let url = make_url(60, may_12_2100_ts, may_13_0200_ts);
     let result = reqwest::get(url).await?.json::<ApiResult>().await?;
